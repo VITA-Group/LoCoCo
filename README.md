@@ -6,4 +6,3 @@
 
 <sup>1</sup>University of Texas at Austin, <sup>2</sup>Meta AI (FAIR), <sup>3</sup>Carnegie Mellon University
 
-The code will come out soon!
