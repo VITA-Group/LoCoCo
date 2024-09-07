@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from ...utils import (
+from transformers.utils import (
     OptionalDependencyNotAvailable,
     _LazyModule,
     is_flax_available,

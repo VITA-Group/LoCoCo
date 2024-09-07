@@ -28,18 +28,18 @@ import torch.utils.checkpoint
 from torch import nn
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 
-from ...activations import ACT2FN
+from transformers.activations import ACT2FN
 # from ...cache_utils import Cache, DynamicCache
-from ...modeling_attn_mask_utils import (
+from transformers.modeling_attn_mask_utils import (
     AttentionMaskConverter,
     _prepare_4d_attention_mask,
     _prepare_4d_causal_attention_mask,
     _prepare_4d_causal_attention_mask_for_sdpa,
 )
-from ...modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast, SequenceClassifierOutputWithPast
-from ...modeling_utils import PreTrainedModel
-from ...pytorch_utils import ALL_LAYERNORM_LAYERS, is_torch_greater_or_equal_than_1_13
-from ...utils import (
+from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast, SequenceClassifierOutputWithPast
+from transformers.modeling_utils import PreTrainedModel
+from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS, is_torch_greater_or_equal_than_1_13
+from transformers.utils import (
     add_start_docstrings,
     add_start_docstrings_to_model_forward,
     is_flash_attn_2_available,
@@ -47,7 +47,7 @@ from ...utils import (
     logging,
     replace_return_docstrings,
 )
-from ...utils.import_utils import is_torch_fx_available
+from transformers.utils.import_utils import is_torch_fx_available
 from .configuration_llama import LlamaConfig
 
 
@@ -55,7 +55,7 @@ if is_flash_attn_2_available():
     from flash_attn import flash_attn_func, flash_attn_varlen_func
     from flash_attn.bert_padding import index_first_axis, pad_input, unpad_input  # noqa
 
-from transformers.global_vars import get_args
+from utils.global_vars import get_args
 from .memory_compressor import drop_tokens, memory_saver
 from utils.cache_utils import Cache, DynamicCache
 
@@ -1282,8 +1282,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
             hidden_states = torch.cat(hidden_states_list, dim=1)
 
         else:
-            if input_ids.shape[-1]>1 and (torch.rand(1) < 0.05).item():
-                print(f'Input length {input_ids.shape[-1]}')
+            # if input_ids.shape[-1]>1 and (torch.rand(1) < 0.05).item():
+            #     print(f'Input length {input_ids.shape[-1]}')
             # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
             outputs = self.model(
                 input_ids=input_ids,

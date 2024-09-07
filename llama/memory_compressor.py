@@ -3,12 +3,12 @@ import sys
 import torch
 import torch.nn as nn
 
-from ...utils import logging
+from transformers.utils import logging
 
 from einops import rearrange
 
-from ...activations import ACT2FN
-from transformers.global_vars import get_args
+from transformers.activations import ACT2FN
+from utils.global_vars import get_args
 
 logger = logging.get_logger(__name__)
 

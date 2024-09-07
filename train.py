@@ -57,12 +57,14 @@ from transformers import (
     default_data_collator,
     get_scheduler,
 )
-from transformers.cache_utils import DynamicCache
+from utils.cache_utils import DynamicCache
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
-from transformers.global_vars import get_args, set_args
+from utils.global_vars import get_args, set_args
 from peft import LoraConfig, get_peft_model
+
+from llama import LlamaConfig, LlamaForCausalLM
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 # check_min_version("4.36.0")
@@ -103,7 +105,7 @@ def parse_args():
 
     parser.add_argument('--exit-after-steps', type=int)
     parser.add_argument('--auto_resume', action='store_true')
-    parser.add_argument('--checkpoint_duration_in_mins', type=int, default=220)
+    parser.add_argument('--checkpoint_duration_in_mins', type=int, default=215)
 
     parser.add_argument(
         "--dataset_name",
@@ -431,11 +433,10 @@ def main():
             trust_remote_code=args.trust_remote_code,
         )
     elif args.model_name_or_path:
-        config = AutoConfig.from_pretrained(
+        config = LlamaConfig.from_pretrained(
             args.model_name_or_path,
             trust_remote_code=args.trust_remote_code,
             attn_implementation="eager",
-            token="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"
         )
     else:
         config = CONFIG_MAPPING[args.model_type]()
@@ -447,8 +448,7 @@ def main():
         )
     elif args.model_name_or_path:
         tokenizer = AutoTokenizer.from_pretrained(
-            args.model_name_or_path, use_fast=not args.use_slow_tokenizer, trust_remote_code=args.trust_remote_code,
-            token="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"
+            args.model_name_or_path, use_fast=not args.use_slow_tokenizer, trust_remote_code=args.trust_remote_code
         )
     else:
         raise ValueError(
@@ -465,13 +465,12 @@ def main():
                 'factor': (args.block_size * args.clean_period/config.max_position_embeddings)}
 
         if args.lora_finetuning:
-            base_model = AutoModelForCausalLM.from_pretrained(
+            base_model = LlamaForCausalLM.from_pretrained(
                 args.model_name_or_path,
                 from_tf=bool(".ckpt" in args.model_name_or_path),
                 config=config,
                 low_cpu_mem_usage=args.low_cpu_mem_usage,
                 trust_remote_code=args.trust_remote_code,
-                token="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",
                 attn_implementation="eager"
             )
             config = LoraConfig(
@@ -486,17 +485,17 @@ def main():
 
         else:
             base_model = None
-            model = AutoModelForCausalLM.from_pretrained(
+            model = LlamaForCausalLM.from_pretrained(
                 args.model_name_or_path,
                 from_tf=bool(".ckpt" in args.model_name_or_path),
                 config=config,
                 low_cpu_mem_usage=args.low_cpu_mem_usage,
                 trust_remote_code=args.trust_remote_code,
-                token="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",
                 attn_implementation="eager"
             )
 
     else:
+        raise NotImplementedError
         logger.info("Training new model from scratch")
         model = AutoModelForCausalLM.from_config(config, trust_remote_code=args.trust_remote_code)
 
@@ -664,9 +663,11 @@ def main():
     lr_scheduler = get_scheduler(
         name=args.lr_scheduler_type,
         optimizer=optimizer,
-        num_warmup_steps=args.num_warmup_steps * args.gradient_accumulation_steps,
-        num_training_steps=args.max_train_steps * args.gradient_accumulation_steps,
-    )
+        num_warmup_steps=args.num_warmup_steps * accelerator.num_processes,
+        num_training_steps=args.max_train_steps * accelerator.num_processes,
+    ) 
+    # NOTE added by Ruisi: please check `accelerator.num_processes`. might needs to modify to args.gradient_accumulation_steps. 
+    # (depend on whether using accelerate package)
 
     # Prepare everything with our `accelerator`.
     model, optimizer, train_dataloader, eval_dataloader, lr_scheduler = accelerator.prepare(
