@@ -13,7 +13,7 @@ LoCoCo supports two modes: (1): inference mode, and (2) post-training tuning mod
 ### inference mode
 To train the model with sequence length of 4096, and the chunk size of 512:
 ```
-python train.py \
+torchrun --nproc_per_node=8 train.py \
     --dataset_name togethercomputer/RedPajama-Data-1T-Sample \
     --model_name_or_path meta-llama/Llama-2-7b-hf \
     --block_size 512 \
@@ -40,7 +40,7 @@ python train.py \
 ### Post-Training Tuning mode
 To train the model with sequence length of 8192, and the chunk size of 512:
 ```
-python train.py \
+torchrun --nproc_per_node=8 train.py \
     --dataset_name togethercomputer/RedPajama-Data-1T-Sample \
     --model_name_or_path meta-llama/Llama-2-7b-hf \
     --block_size 512 \
