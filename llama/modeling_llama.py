@@ -29,7 +29,7 @@ from torch import nn
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 
 from ...activations import ACT2FN
-from ...cache_utils import Cache, DynamicCache
+# from ...cache_utils import Cache, DynamicCache
 from ...modeling_attn_mask_utils import (
     AttentionMaskConverter,
     _prepare_4d_attention_mask,
@@ -57,6 +57,7 @@ if is_flash_attn_2_available():
 
 from transformers.global_vars import get_args
 from .memory_compressor import drop_tokens, memory_saver
+from utils.cache_utils import Cache, DynamicCache
 
 # This makes `_prepare_4d_causal_attention_mask` a leaf function in the FX graph.
 # It means that the function will not be traced through and simply appear as a node in the graph.
